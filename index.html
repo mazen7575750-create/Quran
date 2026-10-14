@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>مصحف حفص | Tarteel-style Quran</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#0a0a0a',
+            gold: '#d4af37',
+            'gold-dim': '#b8942f',
+            warm: '#f5f0e6'
+          },
+          fontFamily: {
+            quran: ['Amiri', 'Scheherazade New', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    html, body { overscroll-behavior: none; }
+
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+      50% { box-shadow: 0 0 0 18px rgba(212, 175, 55, 0); }
+    }
+    .mic-active {
+      animation: pulse-gold 1.6s infinite;
+    }
+
+    .ayah-line {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* وضع الحفظ - كلمة كلمة */
+    .hidden-text .word {
+      color: transparent !important;
+      background: linear-gradient(to right, #d4af37 0%, #d4af37 100%);
+      background-size: 100% 2.5px;
+      background-position: 0 75%;
+      background-repeat: no-repeat;
+      border-radius: 2px;
+      cursor: pointer;
+      user-select: none;
+      padding: 0 2px;
+      transition: all 0.25s ease;
+    }
+    .hidden-text .word.revealed {
+      color: #f5f0e6 !important;
+      background: none;
+    }
+
+    /* وضع الحفظ - آية كاملة */
+    .hidden-ayah .ayah-content {
+      color: transparent !important;
+      background: linear-gradient(to right, #d4af37 0%, #d4af37 100%);
+      background-size: 100% 3px;
+      background-position: 0 60%;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 4px;
+      min-height: 1.8em;
+      transition: all 0.3s ease;
+    }
+    .hidden-ayah .ayah-content.revealed {
+      color: #f5f0e6 !important;
+      background: none;
+    }
+
+    .ayah-active {
+      background: rgba(212, 175, 55, 0.12);
+      border-right: 3px solid #d4af37;
+    }
+
+    /* موبايل: حجم الخط أصغر شوية */
+    @media (max-width: 640px) {
+      .ayah-text {
+        font-size: 1.35rem !important;
+        line-height: 2.4 !important;
+      }
+      #surahName {
+        font-size: 1.6rem !important;
+      }
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 2px; }
+
+    /* منع الزوم على الـ input في iOS */
+    select, button {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body class="bg-void text-warm font-quran min-h-screen overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-void/95 backdrop-blur-md border-b border-gold/20">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gold/20 flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gold" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-gold font-bold text-base sm:text-lg tracking-wide truncate">مصحف حفص</h1>
+          <p class="text-[10px] sm:text-xs text-warm/60">Tarteel-inspired</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <!-- وضع الحفظ + نوع الإخفاء -->
+        <div class="flex items-center gap-1">
+          <button id="memoBtn" class="px-2.5 sm:px-3 py-1.5 rounded-full border border-gold/40 text-gold text-xs sm:text-sm hover:bg-gold/10 transition whitespace-nowrap">
+            وضع الحفظ
+          </button>
+          <select id="hideModeSelect" class="hidden bg-void border border-gold/30 text-gold rounded-lg px-1.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold">
+            <option value="word">كلمة</option>
+            <option value="ayah">آية</option>
+          </select>
+        </div>
+        <!-- Surah Select -->
+        <select id="surahSelect" class="bg-void border border-gold/30 text-warm rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-gold max-w-[120px] sm:max-w-[160px]">
+          <option value="">جاري...</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8 pb-36 sm:pb-40">
+    <!-- Surah Header -->
+    <div id="surahHeader" class="text-center mb-6 sm:mb-10 opacity-0 transition-opacity duration-500">
+      <h2 id="surahName" class="text-2xl sm:text-3xl md:text-4xl text-gold font-bold mb-1 sm:mb-2"></h2>
+      <p id="surahMeta" class="text-warm/50 text-xs sm:text-sm"></p>
+      <div class="mt-3 sm:mt-4 text-3xl sm:text-4xl text-gold/80">﷽</div>
+    </div>
+
+    <!-- Ayahs Container -->
+    <div id="ayahsContainer" class="space-y-4 sm:space-y-6 leading-loose text-center">
+      <!-- Ayahs will be injected here -->
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="text-center py-16 sm:py-20 text-gold/60">
+      <div class="inline-block w-9 h-9 sm:w-10 sm:h-10 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
+      <p class="mt-3 sm:mt-4 text-sm sm:text-base">جاري تحميل المصحف...</p>
+    </div>
+  </main>
+
+  <!-- Floating Controls -->
+  <div class="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-void via-void/95 to-transparent pt-10 sm:pt-12 pb-5 sm:pb-6 safe-area-pb">
+    <div class="max-w-4xl mx-auto px-4 flex items-center justify-center gap-4 sm:gap-6">
+      <!-- Prev Surah -->
+      <button id="prevSurah" class="w-11 h-11 sm:w-12 sm:h-12 rounded-full border border-gold/30 text-gold hover:bg-gold/10 active:scale-95 transition flex items-center justify-center">
+        <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+
+      <!-- Microphone Button -->
+      <button id="micBtn" class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gold text-void flex items-center justify-center shadow-lg shadow-gold/30 hover:scale-105 active:scale-95 transition-transform">
+        <svg id="micIcon" class="w-7 h-7 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+        <svg id="stopIcon" class="w-7 h-7 sm:w-8 sm:h-8 hidden" fill="currentColor" viewBox="0 0 24 24">
+          <rect x="6" y="6" width="12" height="12" rx="1"/>
+        </svg>
+      </button>
+
+      <!-- Next Surah -->
+      <button id="nextSurah" class="w-11 h-11 sm:w-12 sm:h-12 rounded-full border border-gold/30 text-gold hover:bg-gold/10 active:scale-95 transition flex items-center justify-center">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Status -->
+    <p id="status" class="text-center text-xs sm:text-sm text-warm/50 mt-2.5 sm:mt-3 h-5 px-4 truncate"></p>
+  </div>
+
+  <script>
+    // ============================================================
+    // API Key (استخدام شخصي)
+    // ============================================================
+    const OPENAI_API_KEY = "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";
+    const WHISPER_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions";
+
+    // ============================================================
+    // State
+    // ============================================================
+    let currentSurah = 1;
+    let surahsMeta = [];
+    let isListening = false;
+    let isMemoMode = false;
+    let hideMode = 'word'; // 'word' أو 'ayah'
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let stream = null;
+    let transcriptionInterval = null;
+
+    // ============================================================
+    // DOM
+    // ============================================================
+    const surahSelect = document.getElementById('surahSelect');
+    const ayahsContainer = document.getElementById('ayahsContainer');
+    const loading = document.getElementById('loading');
+    const surahHeader = document.getElementById('surahHeader');
+    const surahName = document.getElementById('surahName');
+    const surahMeta = document.getElementById('surahMeta');
+    const micBtn = document.getElementById('micBtn');
+    const micIcon = document.getElementById('micIcon');
+    const stopIcon = document.getElementById('stopIcon');
+    const statusEl = document.getElementById('status');
+    const memoBtn = document.getElementById('memoBtn');
+    const hideModeSelect = document.getElementById('hideModeSelect');
+    const prevSurah = document.getElementById('prevSurah');
+    const nextSurah = document.getElementById('nextSurah');
+
+    // ============================================================
+    // Load Surah list
+    // ============================================================
+    async function loadSurahList() {
+      try {
+        const res = await fetch('https://api.alquran.cloud/v1/meta');
+        const data = await res.json();
+        surahsMeta = data.data.surahs.references;
+
+        surahSelect.innerHTML = surahsMeta.map(s =>
+          `<option value="${s.number}">${s.number}. ${s.name}</option>`
+        ).join('');
+
+        surahSelect.value = currentSurah;
+        loadSurah(currentSurah);
+      } catch (e) {
+        statusEl.textContent = 'فشل تحميل قائمة السور';
+        console.error(e);
+      }
+    }
+
+    // ============================================================
+    // Load one Surah (Uthmani / Hafs)
+    // ============================================================
+    async function loadSurah(number) {
+      loading.classList.remove('hidden');
+      ayahsContainer.innerHTML = '';
+      surahHeader.classList.add('opacity-0');
+
+      try {
+        const res = await fetch(`https://api.alquran.cloud/v1/surah/${number}/quran-uthmani`);
+        const data = await res.json();
+        const surah = data.data;
+
+        surahName.textContent = surah.name;
+        surahMeta.textContent = `${surah.englishName} • ${surah.numberOfAyahs} آيات • ${surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}`;
+        surahHeader.classList.remove('opacity-0');
+
+        ayahsContainer.innerHTML = surah.ayahs.map((ayah) => {
+          const words = ayah.text.split(' ').map((w, i) =>
+            `<span class="word inline-block mx-0.5" data-word="${i}">${w}</span>`
+          ).join(' ');
+
+          return `
+            <div class="ayah-line p-3 sm:p-4 rounded-xl transition-all duration-300" data-ayah="${ayah.numberInSurah}">
+              <div class="ayah-content ayah-text text-warm leading-[2.2] tracking-wide text-xl sm:text-2xl md:text-3xl">
+                ${words}
+                <span class="ayah-number text-gold text-base sm:text-lg mr-1.5">﴿${ayah.numberInSurah}﴾</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        applyMemoMode();
+        currentSurah = number;
+        surahSelect.value = number;
+      } catch (e) {
+        ayahsContainer.innerHTML = '<p class="text-center text-red-400 text-sm">فشل تحميل السورة</p>';
+        console.error(e);
+      } finally {
+        loading.classList.add('hidden');
+      }
+    }
+
+    // ============================================================
+    // Memorization Mode (كلمة / آية)
+    // ============================================================
+    function toggleMemoMode() {
+      isMemoMode = !isMemoMode;
+      memoBtn.classList.toggle('bg-gold', isMemoMode);
+      memoBtn.classList.toggle('text-void', isMemoMode);
+      memoBtn.textContent = isMemoMode ? 'إظهار النص' : 'وضع الحفظ';
+
+      // إظهار/إخفاء قائمة نوع الإخفاء
+      if (isMemoMode) {
+        hideModeSelect.classList.remove('hidden');
+      } else {
+        hideModeSelect.classList.add('hidden');
+      }
+
+      applyMemoMode();
+    }
+
+    function applyMemoMode() {
+      // تنظيف كل الكلاسات السابقة
+      ayahsContainer.classList.remove('hidden-text', 'hidden-ayah');
+      document.querySelectorAll('.word').forEach(w => w.classList.remove('revealed'));
+      document.querySelectorAll('.ayah-content').forEach(a => a.classList.remove('revealed'));
+
+      if (!isMemoMode) return;
+
+      if (hideMode === 'word') {
+        ayahsContainer.classList.add('hidden-text');
+        // كل كلمة قابلة للضغط
+        document.querySelectorAll('.word').forEach(word => {
+          word.onclick = (e) => {
+            e.stopPropagation();
+            word.classList.toggle('revealed');
+          };
+        });
+      } else {
+        // إخفاء آية كاملة
+        ayahsContainer.classList.add('hidden-ayah');
+        document.querySelectorAll('.ayah-line').forEach(line => {
+          const content = line.querySelector('.ayah-content');
+          content.onclick = (e) => {
+            e.stopPropagation();
+            content.classList.toggle('revealed');
+          };
+        });
+      }
+    }
+
+    hideModeSelect.addEventListener('change', (e) => {
+      hideMode = e.target.value;
+      applyMemoMode();
+    });
+
+    // ============================================================
+    // Continuous Microphone + Whisper
+    // ============================================================
+    async function startListening() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 16000
+          }
+        });
+
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : 'audio/webm';
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.start(3000);
+
+        isListening = true;
+        micBtn.classList.add('mic-active');
+        micIcon.classList.add('hidden');
+        stopIcon.classList.remove('hidden');
+        statusEl.textContent = 'يستمع... اقرأ بصوت واضح';
+
+        transcriptionInterval = setInterval(sendAudioChunk, 3500);
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'تعذر الوصول إلى الميكروفون';
+      }
+    }
+
+    async function stopListening() {
+      isListening = false;
+      clearInterval(transcriptionInterval);
+
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+
+      await sendAudioChunk(true);
+
+      micBtn.classList.remove('mic-active');
+      micIcon.classList.remove('hidden');
+      stopIcon.classList.add('hidden');
+      statusEl.textContent = 'توقف الاستماع';
+      setTimeout(() => statusEl.textContent = '', 2500);
+    }
+
+    async function sendAudioChunk(isFinal = false) {
+      if (audioChunks.length === 0) return;
+
+      const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || 'audio/webm' });
+      audioChunks = [];
+
+      if (blob.size < 1000) return;
+
+      const formData = new FormData();
+      formData.append('file', blob, 'recitation.webm');
+      formData.append('model', 'whisper-1');
+      formData.append('language', 'ar');
+      formData.append('response_format', 'text');
+
+      try {
+        statusEl.textContent = isFinal ? 'معالجة آخر مقطع...' : 'جاري التعرف على التلاوة...';
+
+        const res = await fetch(WHISPER_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`
+          },
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(err);
+        }
+
+        const text = await res.text();
+        if (text.trim()) {
+          statusEl.textContent = `تم التعرف: ${text.slice(0, 50)}...`;
+          highlightMatchingAyah(text.trim());
+        }
+      } catch (e) {
+        console.error('Whisper error:', e);
+        statusEl.textContent = 'خطأ في التعرف على الصوت';
+      }
+    }
+
+    function highlightMatchingAyah(transcription) {
+      const words = transcription.replace(/[^\u0600-\u06FF\s]/g, '').split(/\s+/).filter(Boolean);
+      if (words.length < 2) return;
+
+      const ayahEls = document.querySelectorAll('.ayah-line');
+      let bestScore = 0;
+      let bestEl = null;
+
+      ayahEls.forEach(el => {
+        const ayahText = el.textContent;
+        let score = 0;
+        words.forEach(w => {
+          if (ayahText.includes(w)) score++;
+        });
+        if (score > bestScore) {
+          bestScore = score;
+          bestEl = el;
+        }
+      });
+
+      if (bestEl && bestScore >= 2) {
+        ayahEls.forEach(a => a.classList.remove('ayah-active'));
+        bestEl.classList.add('ayah-active');
+        bestEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // ============================================================
+    // Event listeners
+    // ============================================================
+    micBtn.addEventListener('click', () => {
+      if (isListening) stopListening();
+      else startListening();
+    });
+
+    memoBtn.addEventListener('click', toggleMemoMode);
+
+    surahSelect.addEventListener('change', (e) => {
+      loadSurah(parseInt(e.target.value));
+    });
+
+    prevSurah.addEventListener('click', () => {
+      if (currentSurah > 1) loadSurah(currentSurah - 1);
+    });
+
+    nextSurah.addEventListener('click', () => {
+      if (currentSurah < 114) loadSurah(currentSurah + 1);
+    });
+
+    // Keyboard (للديسكتوب)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') nextSurah.click();
+      if (e.key === 'ArrowRight') prevSurah.click();
+      if (e.key === 'm' || e.key === 'M') memoBtn.click();
+    });
+
+    // ============================================================
+    // Init
+    // ============================================================
+    loadSurahList();
+  </script>
+</body>
+</html>
