@@ -2,12 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>مصحف التلاوة الذكي - بالذكاء الاصطناعي</title>
+    <title>مصحف التلاوة الذكي - على نمط رتيل</title>
     <style>
         body {
             font-family: 'Tahoma', Arial, sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
+            background-color: #f7f9fc;
+            color: #2c3e50;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -18,68 +18,84 @@
         .container {
             background: #ffffff;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             text-align: center;
         }
         h2 {
             color: #1b4d3e;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
-        .selector-box {
-            margin-bottom: 20px;
-            text-align: right;
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 25px;
         }
-        select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            background: #fff;
-            cursor: pointer;
-        }
-        .ayah-box {
+        .mode-card {
             background: #e8f8f5;
             border: 1px solid #a3e4d7;
-            padding: 20px;
-            border-radius: 8px;
-            font-size: 22px;
-            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
             color: #117a65;
-            margin: 20px 0;
-            line-height: 1.6;
+            margin-bottom: 20px;
+            font-weight: bold;
         }
         .btn {
-            background: #27ae60;
+            background: linear-gradient(135deg, #27ae60, #219653);
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 15px 35px;
             font-size: 18px;
-            border-radius: 30px;
+            border-radius: 35px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
         }
         .btn.recording {
-            background: #e74c3c;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
         }
         .btn:hover {
-            opacity: 0.9;
+            opacity: 0.95;
         }
         .result-box {
-            margin-top: 20px;
+            margin-top: 25px;
             text-align: right;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            background: #fdfefe;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
         }
-        .feedback {
-            margin-top: 15px;
+        .result-title {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        .transcript-text {
+            font-size: 22px;
             font-weight: bold;
-            font-size: 16px;
+            color: #2c3e50;
+            min-height: 50px;
+            line-height: 1.6;
+        }
+        .status-badge {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            background: #f1f2f6;
+            color: #57606f;
         }
     </style>
 </head>
@@ -87,28 +103,18 @@
 
     <div class="container">
         <h2>مصحف التلاوة الذكي</h2>
+        <p class="subtitle">تلاوة حرة بالذكاء الاصطناعي (على نمط رتيل)</p>
         
-        <div class="selector-box">
-            <label for="ayahSelect"><strong>اختر الآية المراد تلاوتها:</strong></label>
-            <select id="ayahSelect" onchange="updateTargetAyah()">
-                <option value="بسم الله الرحمن الرحيم">البسملة: بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</option>
-                <option value="الحمد لله رب العالمين">سورة الفاتحة (أول آية): الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ</option>
-                <option value="مالك يوم الدين">سورة الفاتحة: مَالِكِ يَوْمِ الدِّينِ</option>
-                <option value="قل هو الله أحد">سورة الإخلاص: قُلْ هُوَ اللَّهُ أَحَدٌ</option>
-                <option value="الله الصمد">سورة الإخلاص: اللَّهُ الصَّمَدُ</option>
-            </select>
+        <div class="mode-card">
+            📖 وضع التلاوة الحرة: اقرأ أي آية من القرآن الكريم وسيقوم النظام بالاستماع والتعرف عليها تلقائياً.
         </div>
 
-        <p>الآية المطلوبة:</p>
-        <div class="ayah-box" id="targetAyahDisplay">
-            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-        </div>
-
-        <button id="recordBtn" class="btn" onclick="toggleRecording()">🎤 ابدأ التلاوة</button>
+        <button id="recordBtn" class="btn" onclick="toggleRecording()">🎤 ابدأ الاستماع للتلاوة</button>
 
         <div class="result-box">
-            <p><strong>ما تم رصده:</strong> <span id="transcript">لم يتم بدء التسجيل بعد...</span></p>
-            <div class="feedback" id="feedback">جاهز للاستماع...</div>
+            <div class="result-title">ما تم رصده من تلاوتك:</div>
+            <div class="transcript-text" id="transcript">اضغط على زر ابدأ وتلوا ما شئت...</div>
+            <div id="statusBadge" class="status-badge">جاهز للاستماع</div>
         </div>
     </div>
 
@@ -118,73 +124,63 @@
         let isRecording = false;
         let recognition;
 
-        let targetAyahText = "بسم الله الرحمن الرحيم";
-
-        function updateTargetAyah() {
-            const select = document.getElementById('ayahSelect');
-            targetAyahText = select.value;
-            document.getElementById('targetAyahDisplay').textContent = select.options[select.selectedIndex].text.split(': ')[1] || select.value;
-            document.getElementById('feedback').textContent = "جاهز للاستماع...";
-            document.getElementById('transcript').textContent = "لم يتم بدء التسجيل بعد...";
-        }
-
         function toggleRecording() {
             const btn = document.getElementById('recordBtn');
-            const feedbackEl = document.getElementById('feedback');
+            const statusBadge = document.getElementById('statusBadge');
             const transcriptEl = document.getElementById('transcript');
 
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                alert("متصفحك لا يدعم التعرف الصوتي المباشر، يُرجى استخدام متصفح Google Chrome.");
+                alert("متصفحك لا يدعم التعرف الصوتي المباشر، يُرجى استخدام متصفح Google Chrome الحديث.");
                 return;
             }
 
             if (!isRecording) {
                 recognition = new SpeechRecognition();
                 recognition.lang = 'ar-SA';
-                recognition.continuous = false;
+                recognition.continuous = true;
                 recognition.interimResults = true;
 
                 recognition.onstart = () => {
                     isRecording = true;
-                    btn.textContent = "🛑 إيقاف التلاوة";
+                    btn.textContent = "🛑 إيقاف الاستماع";
                     btn.classList.add('recording');
-                    feedbackEl.textContent = "جاري الاستماع لتلاوتك...";
-                    feedbackEl.style.color = "#d35400";
+                    statusBadge.textContent = "🎙️ جاري الاستماع لتلاوتك... اقرأ الآن";
+                    statusBadge.style.background = "#fef5e7";
+                    statusBadge.style.color = "#d35400";
                 };
 
                 recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        interimTranscript += event.results[i][0].transcript;
+                    let fullTranscript = '';
+                    for (let i = 0; i < event.results.length; ++i) {
+                        fullTranscript += event.results[i][0].transcript;
                     }
-                    transcriptEl.textContent = interimTranscript;
+                    transcriptEl.textContent = fullTranscript;
                     
-                    const cleanSpoken = interimTranscript.trim();
-                    if (cleanSpoken.length > 0) {
-                        // مقارنة ذكية تتأكد هل الكلمات المدعومة مطابقة للآية المختارة
-                        if (targetAyahText.includes(cleanSpoken) || cleanSpoken.includes(targetAyahText) || targetAyahText.includes(cleanSpoken.split(' ')[0])) {
-                            feedbackEl.textContent = "✅ تلاوة صحيحة وموفقة!";
-                            feedbackEl.style.color = "#27ae60";
-                        } else {
-                            feedbackEl.textContent = "⚠️ تنبيه: الكلمات غير مطابقة للآية المختارة، حاول مرة أخرى.";
-                            feedbackEl.style.color = "#c0392b";
-                        }
+                    if (fullTranscript.trim().length > 0) {
+                        statusBadge.textContent = "✅ تم التقاط التلاوة بنجاح";
+                        statusBadge.style.background = "#e8f8f5";
+                        statusBadge.style.color = "#117a65";
                     }
                 };
 
                 recognition.onerror = (event) => {
                     console.error(event.error);
-                    feedbackEl.textContent = "حدث خطأ أثناء التقاط الصوت.";
+                    statusBadge.textContent = "⚠️ حدث خطأ في التقاط الصوت، حاول مرة أخرى.";
+                    statusBadge.style.background = "#fdebd0";
+                    statusBadge.style.color = "#c0392b";
                     stopRecordingState();
                 };
 
                 recognition.onend = () => {
-                    stopRecordingState();
+                    if (isRecording) {
+                        try { recognition.start(); } catch(e) {}
+                    }
                 };
 
                 recognition.start();
             } else {
+                isRecording = false;
                 if (recognition) {
                     recognition.stop();
                 }
@@ -195,8 +191,12 @@
         function stopRecordingState() {
             isRecording = false;
             const btn = document.getElementById('recordBtn');
-            btn.textContent = "🎤 ابدأ التلاوة";
+            btn.textContent = "🎤 ابدأ الاستماع للتلاوة";
             btn.classList.remove('recording');
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = "تم إيقاف التلاوة";
+            statusBadge.style.background = "#f1f2f6";
+            statusBadge.style.color = "#57606f";
         }
     </script>
 </body>
