@@ -13,7 +13,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
         .container {
             background: #ffffff;
@@ -26,17 +26,31 @@
         }
         h2 {
             color: #1b4d3e;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .selector-box {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            background: #fff;
+            cursor: pointer;
         }
         .ayah-box {
             background: #e8f8f5;
             border: 1px solid #a3e4d7;
             padding: 20px;
             border-radius: 8px;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #117a65;
             margin: 20px 0;
+            line-height: 1.6;
         }
         .btn {
             background: #27ae60;
@@ -72,10 +86,21 @@
 <body>
 
     <div class="container">
-        <h2>مصحف التلاوة الذكي (مشروع تجريبي)</h2>
-        <p>قم بتلاوة الآية التالية بدقة:</p>
+        <h2>مصحف التلاوة الذكي</h2>
         
-        <div class="ayah-box" id="targetAyah">
+        <div class="selector-box">
+            <label for="ayahSelect"><strong>اختر الآية المراد تلاوتها:</strong></label>
+            <select id="ayahSelect" onchange="updateTargetAyah()">
+                <option value="بسم الله الرحمن الرحيم">البسملة: بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</option>
+                <option value="الحمد لله رب العالمين">سورة الفاتحة (أول آية): الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ</option>
+                <option value="مالك يوم الدين">سورة الفاتحة: مَالِكِ يَوْمِ الدِّينِ</option>
+                <option value="قل هو الله أحد">سورة الإخلاص: قُلْ هُوَ اللَّهُ أَحَدٌ</option>
+                <option value="الله الصمد">سورة الإخلاص: اللَّهُ الصَّمَدُ</option>
+            </select>
+        </div>
+
+        <p>الآية المطلوبة:</p>
+        <div class="ayah-box" id="targetAyahDisplay">
             بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
         </div>
 
@@ -93,7 +118,15 @@
         let isRecording = false;
         let recognition;
 
-        const targetAyahText = "بسم الله الرحمن الرحيم";
+        let targetAyahText = "بسم الله الرحمن الرحيم";
+
+        function updateTargetAyah() {
+            const select = document.getElementById('ayahSelect');
+            targetAyahText = select.value;
+            document.getElementById('targetAyahDisplay').textContent = select.options[select.selectedIndex].text.split(': ')[1] || select.value;
+            document.getElementById('feedback').textContent = "جاهز للاستماع...";
+            document.getElementById('transcript').textContent = "لم يتم بدء التسجيل بعد...";
+        }
 
         function toggleRecording() {
             const btn = document.getElementById('recordBtn');
@@ -127,12 +160,14 @@
                     }
                     transcriptEl.textContent = interimTranscript;
                     
-                    if (interimTranscript.trim().length > 0) {
-                        if (targetAyahText.includes(interimTranscript.trim()) || interimTranscript.trim().includes("بسم الله")) {
+                    const cleanSpoken = interimTranscript.trim();
+                    if (cleanSpoken.length > 0) {
+                        // مقارنة ذكية تتأكد هل الكلمات المدعومة مطابقة للآية المختارة
+                        if (targetAyahText.includes(cleanSpoken) || cleanSpoken.includes(targetAyahText) || targetAyahText.includes(cleanSpoken.split(' ')[0])) {
                             feedbackEl.textContent = "✅ تلاوة صحيحة وموفقة!";
                             feedbackEl.style.color = "#27ae60";
                         } else {
-                            feedbackEl.textContent = "⚠️ تنبيه: يُرجى التأكد من صحة نطق الكلمات.";
+                            feedbackEl.textContent = "⚠️ تنبيه: الكلمات غير مطابقة للآية المختارة، حاول مرة أخرى.";
                             feedbackEl.style.color = "#c0392b";
                         }
                     }
